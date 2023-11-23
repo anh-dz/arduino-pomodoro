@@ -62,16 +62,38 @@ when isStart = false => state = w
 unsigned long previousMillis = 0; // will store last time the display was updated
 const long updateInterval = 200; // interval at which to refresh the display (milliseconds)
 const long debounceDelay = 50; // debounce time for buttons
+int t;
 RtcDateTime now;
 
 void loop() {
   now = Rtc.GetDateTime();
   if(!counting && !isStart) {
     display.clearDisplay();
-    printDateTime(now);
+    t = printDateTime(now);
     display.setTextSize(1);
     display.setCursor(0, display.height()/2);
-    display.print("YOUR FUTURE\nIN YOUR HANDS!");
+    switch (t) {
+      case 0 ... 5:
+        display.clearDisplay();
+        break;
+      case 6 ... 8:
+        display.print("TIME TO\nGO TO SCHOOL!");
+        break;
+      case 12 ... 13:
+        display.print("SHORT BREAK!");
+        break;
+      case 17 ... 19:
+        display.print("WORK OUT\nPLAY PIANO");
+        break;
+      case 20 ... 22:
+        display.print("DID YOU STUDY?");
+        break;
+      case 23 ... 24:
+        display.print("PREPARE TO SLEEP!");
+      default:
+        display.print("YOUR FUTURE\nIN YOUR HANDS!");
+        break;
+    }
   }
   
   unsigned long currentMillis = millis();
@@ -147,26 +169,29 @@ void startcounting() {
     display.setTextSize(2);
     display.setCursor(0, display.height()/2);
     display.print(currMillis_ALL);
+    if (currMillis_ALL % 600 == 0) playBuzzer();
   }
 }
 
 #define countof(a) (sizeof(a) / sizeof(a[0]))
 
-void printDateTime(const RtcDateTime& dt) {
+int printDateTime(const RtcDateTime& dt) {
     char datestring[20];
 
     snprintf_P(datestring, 
             countof(datestring),
             PSTR("%02u/%02u %02u:%02u %02u"),
-            dt.Month(),
             dt.Day(),
+            dt.Month(),
             dt.Hour(),
             dt.Minute(),
             session);
     
     display.setTextSize(1);
-    display.setCursor(0,0);
+    display.setCursor(0, 0);
     display.print(datestring);
+
+    return dt.Hour();
 }
 
 void turn_on_led(int led_on, int led_off1, int led_off2) {
